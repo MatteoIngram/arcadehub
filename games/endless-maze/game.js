@@ -14,7 +14,7 @@ import { dirFromKeyboardEvent } from '../../engine/keys.js';
 export const meta = {
   id: 'endless-maze',
   title: 'Endless Maze',
-  description: 'Descend a procedurally generated maze forever. Fog-of-war hides the map; A* pursuers always know exactly where you are and will path straight for you.',
+  description: 'Descend a procedurally generated maze forever.',
   thumbnail: 'games/endless-maze/thumbnail.svg',
   controlsHelp: 'WASD / Arrow keys to move. Touch: on-screen D-pad. Reach the exit before pursuers catch you or the clock runs out.',
   scoreLabel: 'Depth reached',
