@@ -26,14 +26,25 @@ export function decodeScore(score) {
   return { levelsCleared, totalTicks };
 }
 
+// First 10 depths give pursuers 5% less speed as a gentler on-ramp before the
+// standard curve takes over. Expressed as cells-per-tick (not ticks-per-cell)
+// specifically so a percentage adjustment lands precisely at every depth —
+// ticks-per-cell is a small integer here, and a 5% tweak on e.g. 6 or 7 ticks
+// rounds away to nothing.
+const EARLY_DEPTH_CUTOFF = 10;
+const EARLY_DEPTH_SPEED_MULTIPLIER = 0.95;
+
 export function difficultyForDepth(depth) {
   const size = Math.min(9 + depth * 2, 41);
+  const baseTicksPerCell = Math.max(14 - depth, 6);
+  const baseSpeed = 1 / baseTicksPerCell; // cells per tick
+  const pursuerSpeed = depth < EARLY_DEPTH_CUTOFF ? baseSpeed * EARLY_DEPTH_SPEED_MULTIPLIER : baseSpeed;
   return {
     width: size,
     height: size,
     pursuerCount: Math.min(1 + Math.floor(depth / 2), 6),
     playerVisionRadius: Math.max(6 - Math.floor(depth / 4), 3),
-    pursuerMoveEveryTicks: Math.max(14 - depth, 6),
+    pursuerSpeed,
     recomputeEveryTicks: 30,
     playerMoveCooldownTicks: 9,
   };
@@ -82,7 +93,7 @@ function spawnPursuers(maze, count, dist) {
     lastKnownTarget: null,
     path: null,
     pathIndex: 0,
-    lastMoveTick: -Infinity,
+    moveProgress: 0,
     lastRecomputeTick: -Infinity,
   }));
 }
@@ -148,14 +159,19 @@ function advancePursuer(state, pursuer, tick) {
     pursuer.lastRecomputeTick = tick;
   }
 
-  if (tick - pursuer.lastMoveTick < diff.pursuerMoveEveryTicks) return;
   if (!pursuer.path || pursuer.pathIndex >= pursuer.path.length - 1) return;
+
+  // Fractional speed accumulator: banks pursuerSpeed cells' worth of progress
+  // each tick and steps once it crosses 1, so speed changes apply exactly
+  // regardless of magnitude (no integer-tick rounding loss).
+  pursuer.moveProgress += diff.pursuerSpeed;
+  if (pursuer.moveProgress < 1) return;
+  pursuer.moveProgress -= 1;
 
   pursuer.pathIndex += 1;
   const step = pursuer.path[pursuer.pathIndex];
   pursuer.x = step.x;
   pursuer.y = step.y;
-  pursuer.lastMoveTick = tick;
 }
 
 function checkCaught(level) {
