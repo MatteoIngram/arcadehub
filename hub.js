@@ -123,6 +123,7 @@ function escapeHtml(str) {
 }
 
 async function selectGame(id) {
+  activeGame?.destroy();
   const { meta, createGame } = modules.get(id);
   activeMeta = meta;
   activeSeed = makeSeed(meta);
@@ -156,7 +157,7 @@ function handleGameOver({ score, inputs }) {
   els.nameInput.value = localStorage.getItem('arcade:name') || '';
   els.nameInput.hidden = false;
   els.submitBtn.hidden = false;
-  els.skipBtn.textContent = 'Skip';
+  els.skipBtn.textContent = 'Skip & play again';
   els.nameModal.hidden = false;
   els.nameInput.focus();
 }
@@ -183,23 +184,30 @@ async function submitPendingScore() {
       : 'Score submitted!';
     els.nameInput.hidden = true;
     els.submitBtn.hidden = true;
-    els.skipBtn.textContent = 'Close';
-    pendingRunResult = null; // already recorded; a second click on Close shouldn't resubmit
+    els.skipBtn.textContent = 'Play again';
+    pendingRunResult = null; // already recorded; a "Play again" click shouldn't resubmit it
     refreshLeaderboardPanel();
   } else {
     els.summary.textContent = `Submission rejected: ${result.reason || 'validation failed'}`;
   }
 }
 
-function closeNameModal() {
+function hideNameModal() {
   els.nameModal.hidden = true;
   pendingRunResult = null;
+}
+
+// Called from the modal's Skip/Close button — dismiss it and immediately
+// start a fresh run of the same game rather than leaving a dead canvas.
+function playAgain() {
+  hideNameModal();
+  if (activeMeta) selectGame(activeMeta.id);
 }
 
 function backToMenu() {
   activeGame?.destroy();
   activeGame = null;
-  closeNameModal();
+  hideNameModal();
   els.gameView.hidden = true;
   els.menuView.hidden = false;
   renderMenu();
@@ -210,7 +218,7 @@ els.controlsBtn.addEventListener('click', () => {
   els.controlsOverlay.hidden = !els.controlsOverlay.hidden;
 });
 els.submitBtn.addEventListener('click', submitPendingScore);
-els.skipBtn.addEventListener('click', closeNameModal);
+els.skipBtn.addEventListener('click', playAgain);
 window.addEventListener('resize', () => {
   if (!els.gameView.hidden) resizeCanvas();
 });

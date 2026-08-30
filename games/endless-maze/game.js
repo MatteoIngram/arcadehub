@@ -38,6 +38,8 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
   let ended = false;
 
   function keydown(e) {
+    if (ended) return; // run is over — let keys reach the name-entry field normally
+    if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
     const dir = dirFromKeyboardEvent(e);
     if (dir) {
       pendingMove = dir;

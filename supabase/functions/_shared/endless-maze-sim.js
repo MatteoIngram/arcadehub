@@ -18,7 +18,10 @@ export function encodeScore(levelsCleared, totalTicks) {
   return levelsCleared * 1_000_000 - clampedTicks;
 }
 export function decodeScore(score) {
-  const levelsCleared = Math.floor(score / 1_000_000);
+  // encodeScore's subtracted term is always in [0, TICK_CAP], so the score for
+  // a given depth always falls in (depth-1)*1e6 .. depth*1e6 — recovering depth
+  // needs ceil, not floor, or depth 0 (score <= 0) decodes one level too low.
+  const levelsCleared = Math.ceil(score / 1_000_000);
   const totalTicks = levelsCleared * 1_000_000 - score;
   return { levelsCleared, totalTicks };
 }
