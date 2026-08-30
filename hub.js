@@ -35,7 +35,12 @@ document.documentElement.style.setProperty('--bg', theme.background);
 document.documentElement.style.setProperty('--surface', theme.surface);
 document.documentElement.style.setProperty('--text', theme.text);
 document.documentElement.style.setProperty('--text-muted', theme.textMuted);
+document.documentElement.style.setProperty('--text-faint', theme.textFaint);
+document.documentElement.style.setProperty('--danger', theme.danger);
+document.documentElement.style.setProperty('--exit', theme.exit);
+document.documentElement.style.setProperty('--grid-line', theme.gridLine);
 document.documentElement.style.setProperty('--font', theme.font);
+document.documentElement.style.setProperty('--font-mono', theme.fontMono);
 
 function localBestKey(id) {
   return `arcade:best:${id}`;

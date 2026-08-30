@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
-  <rect width="320" height="200" fill="#141824"/>
-  <g stroke="#5b8cff" stroke-width="3" fill="none" stroke-linecap="round">
+  <rect width="320" height="200" fill="#ffffff"/>
+  <g stroke="#ececec" stroke-width="1">
+    <path d="M0 40H320 M0 80H320 M0 120H320 M0 160H320 M40 0V200 M80 0V200 M120 0V200 M160 0V200 M200 0V200 M240 0V200 M280 0V200"/>
+  </g>
+  <g stroke="#8a8a8a" stroke-width="2.5" fill="none" stroke-linecap="round">
     <path d="M20 20 H120 M120 20 V60 M120 60 H60 M60 60 V100 M20 20 V180 M20 180 H160"/>
     <path d="M180 40 H300 M300 40 V90 M220 90 H300 M220 90 V150 M160 150 H280 M280 150 V180 M160 100 V150"/>
   </g>
-  <circle cx="40" cy="160" r="8" fill="#ffffff"/>
-  <circle cx="260" cy="60" r="8" fill="#ff5c5c"/>
-  <rect x="270" y="160" width="16" height="16" fill="#3ddc84"/>
+  <circle cx="40" cy="160" r="7" fill="#0f0f0f"/>
+  <circle cx="260" cy="60" r="7" fill="#a8433c"/>
+  <rect x="271" y="161" width="14" height="14" fill="#4a6b52"/>
 </svg>

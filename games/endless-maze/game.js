@@ -99,8 +99,11 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
 
     const visible = visibleCellsFrom(maze, player.x, player.y, diff.playerVisionRadius);
 
-    ctx.strokeStyle = theme.accent;
-    ctx.lineWidth = Math.max(2, cellPx * 0.08);
+    // Walls render lighter than the player/pursuers so the "nodes" (filled
+    // circles) always read clearly against the "edges" (thin wall lines) —
+    // matters more now that the palette is near-monochrome.
+    ctx.strokeStyle = theme.textMuted || theme.accent;
+    ctx.lineWidth = Math.max(1.5, cellPx * 0.06);
     ctx.lineCap = 'round';
     for (const [key] of visible) {
       const y = Math.floor(key / maze.width);
@@ -116,7 +119,7 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
       ctx.stroke();
 
       if (x === maze.exit.x && y === maze.exit.y) {
-        ctx.fillStyle = theme.exit || '#3ddc84';
+        ctx.fillStyle = theme.exit || '#4a6b52';
         ctx.fillRect(cx + cellPx * 0.25, cy + cellPx * 0.25, cellPx * 0.5, cellPx * 0.5);
       }
     }
@@ -124,27 +127,27 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
     for (const p of pursuers) {
       const k = p.y * maze.width + p.x;
       if (!visible.has(k)) continue;
-      ctx.fillStyle = theme.danger || '#ff5c5c';
+      ctx.fillStyle = theme.danger || '#a8433c';
       ctx.beginPath();
       ctx.arc((p.x + 0.5) * cellPx, (p.y + 0.5) * cellPx, cellPx * 0.32, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ctx.fillStyle = theme.player || '#ffffff';
+    ctx.fillStyle = theme.player || '#0f0f0f';
     ctx.beginPath();
     ctx.arc((player.x + 0.5) * cellPx, (player.y + 0.5) * cellPx, cellPx * 0.32, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
 
-    ctx.font = '16px ' + (theme.font || 'sans-serif');
-    ctx.fillStyle = theme.text || '#ffffff';
-    ctx.fillText(`Depth ${state.levelsCleared}`, 12, 24);
+    ctx.font = '13px ' + (theme.fontMono || theme.font || 'monospace');
+    ctx.fillStyle = theme.text || '#0f0f0f';
+    ctx.fillText(`DEPTH ${state.levelsCleared}`, 12, 22);
 
     const remainingTicks = level.diff.maxTicksPerLevel - level.ticksThisLevel;
     const remainingSec = Math.max(remainingTicks * TICK_MS / 1000, 0);
-    ctx.fillStyle = remainingSec <= 5 ? (theme.danger || '#ff5c5c') : (theme.text || '#ffffff');
-    ctx.fillText(`Time: ${remainingSec.toFixed(1)}s`, 12, 46);
+    ctx.fillStyle = remainingSec <= 5 ? (theme.danger || '#a8433c') : (theme.textMuted || theme.text || '#0f0f0f');
+    ctx.fillText(`TIME ${remainingSec.toFixed(1)}s`, 12, 40);
   }
 
   return {
