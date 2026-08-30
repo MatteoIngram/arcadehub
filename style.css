@@ -56,6 +56,11 @@ body::before {
   grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
   justify-content: start;
   gap: 1px;
+  /* fit-content so this box only ever covers actual cards — a block-level
+     grid container otherwise stretches to the full parent width regardless
+     of how many tracks are populated, and its background/border would then
+     spill past the last real card as a bare rectangle. */
+  width: fit-content;
   background: var(--grid-line, #ececec);
   border: 1px solid var(--grid-line, #ececec);
 }
