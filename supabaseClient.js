@@ -7,8 +7,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // Fill these in with your own project's values (Project Settings > API).
 // The anon key is safe to ship in client code — it can only do what your
 // RLS policies allow (see supabase/schema.sql).
-const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR-PUBLIC-ANON-KEY';
+const SUPABASE_URL = 'https://luxrqwbdqjsqvpufziwz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_pWY4ZezMXRY0vHrz_ub7Ag_A6-1c3zD';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
