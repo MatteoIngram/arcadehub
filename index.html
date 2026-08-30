@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Arcade</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="hub-header">
+      <h1>Arcade</h1>
+    </header>
+
+    <main id="menu-view">
+      <div id="game-grid"></div>
+    </main>
+
+    <main id="game-view" hidden>
+      <div id="game-topbar">
+        <button id="back-btn">&larr; Back</button>
+        <h2 id="game-title"></h2>
+        <button id="controls-btn">Controls</button>
+      </div>
+      <div id="game-content">
+        <div id="game-stage">
+          <canvas id="game-canvas"></canvas>
+          <div id="controls-overlay" hidden></div>
+        </div>
+        <aside id="leaderboard-panel">
+          <h3>Leaderboard</h3>
+          <ol id="leaderboard-list"></ol>
+        </aside>
+      </div>
+    </main>
+
+    <div id="name-modal" hidden>
+      <div class="modal-box">
+        <p id="game-over-summary"></p>
+        <input id="name-input" maxlength="16" placeholder="Your name" autocomplete="off" />
+        <div class="modal-actions">
+          <button id="submit-score-btn">Submit score</button>
+          <button id="skip-submit-btn">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="hub.js"></script>
+</body>
+</html>
