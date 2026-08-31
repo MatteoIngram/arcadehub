@@ -153,37 +153,58 @@ async function selectGame(id) {
   activeGame.start();
 }
 
-function handleGameOver({ score, inputs }) {
+async function handleGameOver({ score, inputs }) {
   const { meta, formatScore } = modules.get(activeMeta.id);
   pendingRunResult = { gameId: meta.id, seed: activeSeed, score, inputs };
   writeLocalBestIfBetter(meta.id, score, meta.scoreOrder);
 
-  els.summary.textContent = `Run over — ${meta.scoreLabel}: ${formatScore(score)}`;
-  els.nameInput.value = localStorage.getItem('arcade:name') || '';
-  els.nameInput.hidden = false;
-  els.submitBtn.hidden = false;
-  els.skipBtn.textContent = 'Skip & play again';
+  const savedName = localStorage.getItem('arcade:name');
   els.nameModal.hidden = false;
-  els.nameInput.focus();
+
+  if (!savedName) {
+    // First run ever on this device: ask for a name once. Every run after
+    // this reuses it automatically — no repeated prompt.
+    els.summary.textContent = `Run over — ${meta.scoreLabel}: ${formatScore(score)}`;
+    els.nameInput.value = '';
+    els.nameInput.hidden = false;
+    els.submitBtn.hidden = false;
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = 'Submit score';
+    els.skipBtn.textContent = 'Skip & play again';
+    els.nameInput.focus();
+    return;
+  }
+
+  els.nameInput.hidden = true;
+  els.submitBtn.hidden = true;
+  els.skipBtn.textContent = 'Play again';
+  els.summary.textContent = `Run over — ${meta.scoreLabel}: ${formatScore(score)} — submitting…`;
+  await doSubmit(savedName);
 }
 
-async function submitPendingScore() {
+async function submitFromInput() {
   if (!pendingRunResult) return;
   const name = els.nameInput.value.trim().slice(0, 16) || 'Anonymous';
-  localStorage.setItem('arcade:name', name);
   els.submitBtn.disabled = true;
   els.submitBtn.textContent = 'Submitting…';
-  const result = await submitScore({
-    game: pendingRunResult.gameId,
-    name,
-    seed: pendingRunResult.seed,
-    inputs: pendingRunResult.inputs,
-    claimedScore: pendingRunResult.score,
-  });
+  await doSubmit(name);
   els.submitBtn.disabled = false;
   els.submitBtn.textContent = 'Submit score';
+}
+
+async function doSubmit(name) {
+  const run = pendingRunResult;
+  if (!run) return;
+  localStorage.setItem('arcade:name', name);
+  const result = await submitScore({
+    game: run.gameId,
+    name,
+    seed: run.seed,
+    inputs: run.inputs,
+    claimedScore: run.score,
+  });
+  const { meta, formatScore } = modules.get(run.gameId);
   if (result.ok) {
-    const { meta, formatScore } = modules.get(pendingRunResult.gameId);
     if (result.improved === false) {
       els.summary.textContent = `Your best on this device is still ${formatScore(result.bestScore)} — this run didn't beat it.`;
     } else if (result.rank) {
@@ -194,7 +215,7 @@ async function submitPendingScore() {
     els.nameInput.hidden = true;
     els.submitBtn.hidden = true;
     els.skipBtn.textContent = 'Play again';
-    pendingRunResult = null; // already recorded; a "Play again" click shouldn't resubmit it
+    if (pendingRunResult === run) pendingRunResult = null; // don't resubmit on Play Again
     refreshLeaderboardPanel();
   } else {
     els.summary.textContent = `Submission rejected: ${result.reason || 'validation failed'}`;
@@ -226,7 +247,7 @@ els.backBtn.addEventListener('click', backToMenu);
 els.controlsBtn.addEventListener('click', () => {
   els.controlsOverlay.hidden = !els.controlsOverlay.hidden;
 });
-els.submitBtn.addEventListener('click', submitPendingScore);
+els.submitBtn.addEventListener('click', submitFromInput);
 els.skipBtn.addEventListener('click', playAgain);
 window.addEventListener('resize', () => {
   if (!els.gameView.hidden) resizeCanvas();
