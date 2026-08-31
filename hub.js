@@ -183,10 +183,14 @@ async function submitPendingScore() {
   els.submitBtn.disabled = false;
   els.submitBtn.textContent = 'Submit score';
   if (result.ok) {
-    const { meta } = modules.get(pendingRunResult.gameId);
-    els.summary.textContent = result.rank
-      ? `You're #${result.rank} on the ${meta.title} leaderboard!`
-      : 'Score submitted!';
+    const { meta, formatScore } = modules.get(pendingRunResult.gameId);
+    if (result.improved === false) {
+      els.summary.textContent = `Your best on this device is still ${formatScore(result.bestScore)} — this run didn't beat it.`;
+    } else if (result.rank) {
+      els.summary.textContent = `You're #${result.rank} on the ${meta.title} leaderboard!`;
+    } else {
+      els.summary.textContent = 'Score submitted!';
+    }
     els.nameInput.hidden = true;
     els.submitBtn.hidden = true;
     els.skipBtn.textContent = 'Play again';

@@ -9,10 +9,19 @@ create table if not exists scores (
   score numeric not null,
   seed text not null,
   inputs jsonb not null,
+  device_id text,
   created_at timestamptz not null default now()
 );
 
 create index if not exists scores_game_score_idx on scores (game, score);
+
+-- One row per (game, device) — the Edge Function only inserts a device's
+-- first row and updates it in place on later runs, and only when the new
+-- score actually beats the stored one. Partial (excludes NULLs) so rows from
+-- before device_id existed don't collide with each other.
+create unique index if not exists scores_game_device_unique
+  on scores (game, device_id)
+  where device_id is not null;
 
 alter table scores enable row level security;
 

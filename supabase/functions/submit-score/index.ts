@@ -15,6 +15,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_PER_WINDOW = 5;
 const MAX_INPUT_EVENTS = 200_000; // sanity cap against malformed/abusive payloads
 const MAX_NAME_LENGTH = 16;
+const MAX_DEVICE_ID_LENGTH = 64;
 
 // Mirrors each game module's `meta.scoreOrder` — duplicated here since the
 // Edge Function doesn't load client game modules, only the shared sim code.
@@ -76,7 +77,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: 'invalid JSON body' }, 400);
   }
 
-  const { game, name, seed, inputs, claimedScore } = body ?? {};
+  const { game, name, seed, inputs, claimedScore, deviceId } = body ?? {};
 
   const validator = VALIDATORS[game];
   if (!validator) return json({ ok: false, reason: `unknown game "${game}"` }, 400);
@@ -86,6 +87,9 @@ Deno.serve(async (req) => {
   }
   if (typeof claimedScore !== 'number' || !Number.isFinite(claimedScore)) {
     return json({ ok: false, reason: 'invalid claimed score' }, 400);
+  }
+  if (typeof deviceId !== 'string' || !deviceId || deviceId.length > MAX_DEVICE_ID_LENGTH) {
+    return json({ ok: false, reason: 'missing device id' }, 400);
   }
   const safeName = (typeof name === 'string' ? name.trim() : '').slice(0, MAX_NAME_LENGTH) || 'Anonymous';
 
@@ -109,23 +113,53 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: 'recomputed score does not match claimed score' }, 400);
   }
 
-  const { error } = await admin.from('scores').insert({
-    game,
-    name: safeName,
-    score: outcome.score,
-    seed,
-    inputs,
-  });
-
-  if (error) return json({ ok: false, reason: 'database insert failed' }, 500);
-
   const order = GAME_SCORE_ORDER[game];
+  const isBetter = (a, b) => (order === 'asc' ? a < b : a > b);
+
+  // One row per (game, deviceId): keep whichever run scored best rather than
+  // logging every single submission from the same player.
+  const { data: existing, error: fetchError } = await admin
+    .from('scores')
+    .select('score')
+    .eq('game', game)
+    .eq('device_id', deviceId)
+    .maybeSingle();
+
+  if (fetchError) return json({ ok: false, reason: 'database read failed' }, 500);
+
+  let bestScore = outcome.score;
+  let improved = true;
+
+  if (existing) {
+    if (isBetter(outcome.score, existing.score)) {
+      const { error } = await admin
+        .from('scores')
+        .update({ name: safeName, score: outcome.score, seed, inputs, created_at: new Date().toISOString() })
+        .eq('game', game)
+        .eq('device_id', deviceId);
+      if (error) return json({ ok: false, reason: 'database update failed' }, 500);
+    } else {
+      improved = false;
+      bestScore = existing.score;
+    }
+  } else {
+    const { error } = await admin.from('scores').insert({
+      game,
+      name: safeName,
+      score: outcome.score,
+      seed,
+      inputs,
+      device_id: deviceId,
+    });
+    if (error) return json({ ok: false, reason: 'database insert failed' }, 500);
+  }
+
   const { count } = await admin
     .from('scores')
     .select('*', { count: 'exact', head: true })
     .eq('game', game)
-    .filter('score', order === 'asc' ? 'lt' : 'gt', outcome.score);
+    .filter('score', order === 'asc' ? 'lt' : 'gt', bestScore);
   const rank = (count ?? 0) + 1;
 
-  return json({ ok: true, score: outcome.score, rank });
+  return json({ ok: true, score: outcome.score, bestScore, improved, rank });
 });

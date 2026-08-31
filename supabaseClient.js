@@ -12,6 +12,21 @@ const SUPABASE_ANON_KEY = 'sb_publishable_pWY4ZezMXRY0vHrz_ub7Ag_A6-1c3zD';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const DEVICE_ID_KEY = 'arcade:deviceId';
+
+// A persistent anonymous id for this browser, so the leaderboard can keep one
+// row per player (updated only when beaten) instead of a row per run. Not
+// tied to any identity beyond "this browser" — clearing storage or switching
+// devices starts a fresh entry, same as any no-login leaderboard.
+export function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+
 export async function getTopScores(game, scoreOrder, limit = 100) {
   const { data, error } = await supabase
     .from('scores')
@@ -28,11 +43,11 @@ export async function getTopScores(game, scoreOrder, limit = 100) {
 
 export async function submitScore({ game, name, seed, inputs, claimedScore }) {
   const { data, error } = await supabase.functions.invoke('submit-score', {
-    body: { game, name, seed, inputs, claimedScore },
+    body: { game, name, seed, inputs, claimedScore, deviceId: getDeviceId() },
   });
   if (error) {
     console.error('submitScore failed', error);
     return { ok: false, reason: error.message };
   }
-  return data; // { ok: true, rank? } or { ok: false, reason }
+  return data; // { ok: true, rank, improved, bestScore } or { ok: false, reason }
 }
