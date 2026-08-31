@@ -49,53 +49,5 @@ the full tick-stamped input log for the run. To add a game: implement this
 contract under `games/<id>/game.js`, then append `{ id, load: () =>
 import('./games/<id>/game.js') }` to `manifest.js`. Nothing else changes.
 
-## Determinism
 
-All games are built on `engine/prng.js` (mulberry32) and `engine/loop.js`
-(fixed 60Hz timestep) — never `Math.random()`, never frame-rate-dependent
-logic. That's what makes `seed + inputs` fully sufficient to replay a run,
-which is the entire basis for server-side score validation.
 
-## Setting up Supabase
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. Run `supabase/schema.sql` in the SQL editor (creates `scores` with public
-   read-only RLS, plus a `submit_rate_limit` table used only server-side).
-3. In `supabaseClient.js`, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` from
-   Project Settings → API.
-4. Install the Supabase CLI, then from the repo root:
-   ```bash
-   supabase login
-   supabase link --project-ref YOUR-PROJECT-REF
-   supabase functions deploy submit-score
-   ```
-   The function reads `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the
-   environment Supabase injects automatically — no manual secrets needed.
-
-   Note: `_shared/` imports reach up to `/engine/prng.js` at the repo root so
-   the client and the validator share one copy. If your Supabase CLI version
-   refuses to bundle imports from outside `supabase/functions/`, copy
-   `engine/prng.js` into `supabase/functions/_shared/` and adjust the import
-   lines in `_shared/maze-gen.js` and `_shared/endless-maze-sim.js` accordingly.
-
-## Running locally
-
-Any static file server works, e.g.:
-```bash
-npx serve .
-```
-Then open the printed URL. (Opening `index.html` directly via `file://` will
-not work — ES module imports require an http(s) origin.)
-
-## Deploying
-
-Push to GitHub, enable GitHub Pages on the repo (serve from root), then embed
-via `<iframe src="https://you.github.io/arcade-hub/">`.
-
-## Launch games
-
-- **Endless Maze** (`endless-maze`) — procedurally generated maze, descend
-  forever, fog-of-war vision, A* pursuers that always know exactly where you
-  are and path straight for you. Each level has a hard countdown pegged to
-  the shortest route to the exit. Score = depth reached, tie-broken by
-  fewest ticks.
