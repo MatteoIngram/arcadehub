@@ -119,7 +119,7 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
       ctx.stroke();
 
       if (x === maze.exit.x && y === maze.exit.y) {
-        ctx.fillStyle = theme.exit || '#4a6b52';
+        ctx.fillStyle = theme.exit || '#3f5c46';
         ctx.fillRect(cx + cellPx * 0.25, cy + cellPx * 0.25, cellPx * 0.5, cellPx * 0.5);
       }
     }
@@ -127,13 +127,13 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
     for (const p of pursuers) {
       const k = p.y * maze.width + p.x;
       if (!visible.has(k)) continue;
-      ctx.fillStyle = theme.danger || '#a8433c';
+      ctx.fillStyle = theme.danger || '#8c3a3a';
       ctx.beginPath();
       ctx.arc((p.x + 0.5) * cellPx, (p.y + 0.5) * cellPx, cellPx * 0.32, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ctx.fillStyle = theme.player || '#0f0f0f';
+    ctx.fillStyle = theme.player || '#1a1a1a';
     ctx.beginPath();
     ctx.arc((player.x + 0.5) * cellPx, (player.y + 0.5) * cellPx, cellPx * 0.32, 0, Math.PI * 2);
     ctx.fill();
@@ -141,12 +141,12 @@ export function createGame({ canvas, ctx, seed, theme, isMobile, onGameOver }) {
     ctx.restore();
 
     ctx.font = '13px ' + (theme.fontMono || theme.font || 'monospace');
-    ctx.fillStyle = theme.text || '#0f0f0f';
+    ctx.fillStyle = theme.text || '#1a1a1a';
     ctx.fillText(`DEPTH ${state.levelsCleared}`, 12, 22);
 
     const remainingTicks = level.diff.maxTicksPerLevel - level.ticksThisLevel;
     const remainingSec = Math.max(remainingTicks * TICK_MS / 1000, 0);
-    ctx.fillStyle = remainingSec <= 5 ? (theme.danger || '#a8433c') : (theme.textMuted || theme.text || '#0f0f0f');
+    ctx.fillStyle = remainingSec <= 5 ? (theme.danger || '#8c3a3a') : (theme.textMuted || theme.text || '#1a1a1a');
     ctx.fillText(`TIME ${remainingSec.toFixed(1)}s`, 12, 40);
   }
 

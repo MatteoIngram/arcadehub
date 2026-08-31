@@ -1,18 +1,19 @@
 // Single place to re-skin the hub to match a host site. Every color/font used
 // by the hub UI and passed into game modules reads from here.
-// Matched to https://matteoingram.github.io/Ingram/ — monochrome, serif
-// headings, tracked mono labels, graph-paper grid, near-zero color accent.
+// Vibe: matteoingram.github.io/Ingram — serif headings, tracked mono labels,
+// near-monochrome — but warmed up and given room to breathe rather than the
+// literal graph-paper grid, aiming for quiet/premium over "spreadsheet."
 export const theme = {
-  background: '#ffffff',
+  background: '#faf9f6',
   surface: '#ffffff',
-  accent: '#0f0f0f',
-  text: '#0f0f0f',
-  textMuted: '#8a8a8a',
-  textFaint: '#cccccc',
-  danger: '#a8433c',
-  exit: '#4a6b52',
-  player: '#0f0f0f',
-  gridLine: '#ececec',
+  accent: '#1a1a1a',
+  text: '#1a1a1a',
+  textMuted: '#767268',
+  textFaint: '#b8b3a8',
+  hairline: '#e7e3da',
+  danger: '#8c3a3a',
+  exit: '#3f5c46',
+  player: '#1a1a1a',
   font: "'EB Garamond', Georgia, serif",
   fontMono: "'DM Mono', ui-monospace, SFMono-Regular, monospace",
 };
