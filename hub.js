@@ -2,6 +2,7 @@ import { manifest } from './manifest.js';
 import { theme } from './theme.js';
 import { getTopScores, submitScore } from './supabaseClient.js';
 import { dailySeedString } from './engine/prng.js';
+import { containsBannedWord } from './engine/profanity.js';
 
 const els = {
   grid: document.getElementById('game-grid'),
@@ -185,6 +186,10 @@ async function handleGameOver({ score, inputs }) {
 async function submitFromInput() {
   if (!pendingRunResult) return;
   const name = els.nameInput.value.trim().slice(0, 16) || 'Anonymous';
+  if (containsBannedWord(name)) {
+    els.summary.textContent = 'Please choose a different name.';
+    return;
+  }
   els.submitBtn.disabled = true;
   els.submitBtn.textContent = 'Submitting…';
   await doSubmit(name);
@@ -195,7 +200,6 @@ async function submitFromInput() {
 async function doSubmit(name) {
   const run = pendingRunResult;
   if (!run) return;
-  localStorage.setItem('arcade:name', name);
   const result = await submitScore({
     game: run.gameId,
     name,
@@ -205,6 +209,7 @@ async function doSubmit(name) {
   });
   const { meta, formatScore } = modules.get(run.gameId);
   if (result.ok) {
+    localStorage.setItem('arcade:name', name); // only remember it once the server has actually accepted it
     if (result.improved === false) {
       els.summary.textContent = `Your best on this device is still ${formatScore(result.bestScore)} — this run didn't beat it.`;
     } else if (result.rank) {

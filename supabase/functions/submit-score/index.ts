@@ -4,6 +4,7 @@
 // recomputed score matches what the client claimed.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { simulateRun as simulateMazeRun } from '../_shared/endless-maze-sim.js';
+import { containsBannedWord } from '../../../engine/profanity.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -92,6 +93,9 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: 'missing device id' }, 400);
   }
   const safeName = (typeof name === 'string' ? name.trim() : '').slice(0, MAX_NAME_LENGTH) || 'Anonymous';
+  if (containsBannedWord(safeName)) {
+    return json({ ok: false, reason: 'please choose a different name' }, 400);
+  }
 
   const admin = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
 

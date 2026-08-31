@@ -23,6 +23,12 @@ create unique index if not exists scores_game_device_unique
   on scores (game, device_id)
   where device_id is not null;
 
+-- Defense in depth: the Edge Function already blocks these (see
+-- engine/profanity.js, the actual source of truth), but this constraint
+-- rejects them even on a direct/admin insert that bypassed that check.
+alter table scores add constraint scores_name_no_profanity
+  check (lower(regexp_replace(name, '[^a-zA-Z0-9]', '', 'g')) !~ '(fuck|shit|bitch|asshole|bastard|dickhead|piss|cunt|whore|slut|faggot|retard|nigger|nigga|chink|spic|kike|tranny|rape|nazi|hitler)');
+
 alter table scores enable row level security;
 
 create policy "Public read access"
