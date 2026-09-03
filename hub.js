@@ -23,7 +23,10 @@ const els = {
 };
 
 const ctx = els.canvas.getContext('2d');
-const isMobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+// Touch capability only — NOT viewport width. A desktop window that's simply
+// narrow (resized, zoomed in) must never get the touch d-pad or smaller cells;
+// only a device that can actually receive touch input should.
+const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 const modules = new Map(); // id -> { meta, createGame, formatScore }
 let activeGame = null;
