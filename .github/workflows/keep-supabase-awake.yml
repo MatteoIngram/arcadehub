@@ -1,0 +1,21 @@
+name: Keep Supabase awake
+
+# Supabase pauses free-tier projects after ~7 days with no activity, and a
+# paused project stays down until someone restores it by hand. A real query
+# every 2 days keeps it active. The key below is the public publishable key
+# (already shipped in supabaseClient.js), so no secrets are involved.
+# If the project ever IS paused/unreachable, this run fails and GitHub emails you.
+on:
+  schedule:
+    - cron: '17 6 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the scores table
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 \
+            "https://luxrqwbdqjsqvpufziwz.supabase.co/rest/v1/scores?select=id&limit=1" \
+            -H "apikey: sb_publishable_pWY4ZezMXRY0vHrz_ub7Ag_A6-1c3zD"
